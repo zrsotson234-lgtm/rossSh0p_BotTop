@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV DATA_DIR=/app/data
+
+RUN mkdir -p /app/data && chmod 777 /app/data
+RUN chown -R $(id -u):$(id -g) /app/data 2>/dev/null || chown -R 1000:1000 /app/data || true
+
+RUN pip install --no-cache-dir \
+    aiogram>=3.0.0 \
+    pyTelegramBotAPI \
+    requests \
+    cryptography
+
+RUN pip cache purge || true
+
+COPY . .
+
+RUN echo '#!/bin/sh' > /usr/local/bin/entrypoint.sh && \
+    echo 'set -e' >> /usr/local/bin/entrypoint.sh && \
+    echo 'mkdir -p /app/data' >> /usr/local/bin/entrypoint.sh && \
+    echo 'chmod 777 /app/data' >> /usr/local/bin/entrypoint.sh && \
+    echo 'chown -R $(id -u):$(id -g) /app/data 2>/dev/null || true' >> /usr/local/bin/entrypoint.sh && \
+    echo 'exec "$@"' >> /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+CMD ["python", "bot (3).py"]
